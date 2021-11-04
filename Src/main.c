@@ -28,8 +28,12 @@ void SystemClock_Config(void);
 
 void process_serial_data(uint8_t ch);
 
+char correctMessage[6];
+int i = 0;
+
 int main(void)
 {
+
 
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
@@ -43,14 +47,50 @@ int main(void)
 
   USART2_RegisterCallback(process_serial_data);
 
-  char tx_data = 'a';
+char message1[] = "Led on";
+char message2[] = "Led off";
 
   while (1)
   {
-	  LL_USART_TransmitData8(USART2, tx_data++);
-	  tx_data == ('z' + 1) ? tx_data = 'a' : tx_data;
 
-	  LL_mDelay(50);
+      if (LL_GPIO_IsOutputPinSet(GPIOB,LL_GPIO_PIN_3)){
+	    for(int m = 0; m<6; m++)
+	    {
+	    	LL_USART_TransmitData8(USART2, message1[m]);
+	    	LL_mDelay(50);
+	    }
+	    LL_USART_TransmitData8(USART2, '\r');
+      }
+      else{
+	    for(int m = 0; m<7; m++)
+	    {
+	    	LL_USART_TransmitData8(USART2, message2[m]);
+	    	LL_mDelay(50);
+	    }
+	    LL_USART_TransmitData8(USART2, '\r');
+      }
+      LL_mDelay(5000);
+
+
+
+		if(!strcmp(correctMessage,"ledON"))
+		{
+			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+		if(!strcmp(correctMessage,"ledOFF"))
+		{
+			LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if((i>=5 && strcmp(correctMessage,"ledOFF")) || (i==4 && (strcmp(correctMessage,"ledOF") || strcmp(correctMessage,"ledON"))))
+		{
+					memset(correctMessage, 0, 6);
+					i=0;
+		}
   }
 }
 
@@ -64,14 +104,14 @@ void SystemClock_Config(void)
 
   if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_0)
   {
-  Error_Handler();  
+  Error_Handler();
   }
   LL_RCC_HSI_Enable();
 
    /* Wait till HSI is ready */
   while(LL_RCC_HSI_IsReady() != 1)
   {
-    
+
   }
   LL_RCC_HSI_SetCalibTrimming(16);
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
@@ -82,7 +122,7 @@ void SystemClock_Config(void)
    /* Wait till System clock is ready */
   while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
   {
-  
+
   }
   LL_Init1msTick(8000000);
   LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
@@ -92,29 +132,13 @@ void SystemClock_Config(void)
 
 void process_serial_data(uint8_t ch)
 {
-	static uint8_t count = 0;
 
-	if(ch == 'a')
+	if(ch != '\r')
 	{
-		count++;
-
-		if(count >= 3)
-		{
-			if((LL_GPIO_ReadInputPort(GPIOB) & (1 << 3)) >> 3)
-			{
-				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
-			}
-			else
-			{
-				LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
-			}
-
-			count = 0;
-			return;
-		}
+		correctMessage[i] = ch;
+		i++;
 	}
 }
-
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -137,7 +161,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(char *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
