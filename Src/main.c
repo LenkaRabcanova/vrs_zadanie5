@@ -35,7 +35,8 @@ int main(void)
 {
 
 
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
+
+LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
   NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
@@ -53,44 +54,24 @@ char message2[] = "Led off";
   while (1)
   {
 
-      if (LL_GPIO_IsOutputPinSet(GPIOB,LL_GPIO_PIN_3)){
-	    for(int m = 0; m<6; m++)
-	    {
-	    	LL_USART_TransmitData8(USART2, message1[m]);
-	    	LL_mDelay(50);
-	    }
-	    LL_USART_TransmitData8(USART2, '\r');
-      }
-      else{
-	    for(int m = 0; m<7; m++)
-	    {
-	    	LL_USART_TransmitData8(USART2, message2[m]);
-	    	LL_mDelay(50);
-	    }
-	    LL_USART_TransmitData8(USART2, '\r');
-      }
-      LL_mDelay(5000);
+	if (LL_GPIO_IsOutputPinSet(GPIOB,LL_GPIO_PIN_3)){
+	for(int m = 0; m<6; m++)
+	{
+		LL_USART_TransmitData8(USART2, message1[m]);
+		LL_mDelay(50);
+	}
+	LL_USART_TransmitData8(USART2, '\r');
+	}
+	else{
+	for(int m = 0; m<7; m++)
+	{
+		LL_USART_TransmitData8(USART2, message2[m]);
+		LL_mDelay(50);
+	}
+	LL_USART_TransmitData8(USART2, '\r');
+	}
+	LL_mDelay(5000);
 
-
-
-		if(!strcmp(correctMessage,"ledON"))
-		{
-			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
-			memset(correctMessage, 0, 6);
-			i=0;
-		}
-		if(!strcmp(correctMessage,"ledOFF"))
-		{
-			LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
-			memset(correctMessage, 0, 6);
-			i=0;
-		}
-
-		if((i>=5 && strcmp(correctMessage,"ledOFF")) || (i==4 && (strcmp(correctMessage,"ledOF") || strcmp(correctMessage,"ledON"))))
-		{
-					memset(correctMessage, 0, 6);
-					i=0;
-		}
   }
 }
 
@@ -138,6 +119,25 @@ void process_serial_data(uint8_t ch)
 		correctMessage[i] = ch;
 		i++;
 	}
+	if(!strcmp(correctMessage,"ledON"))
+	{
+		LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+		memset(correctMessage, 0, 6);
+		i=0;
+	}
+	if(!strcmp(correctMessage,"ledOFF"))
+	{
+		LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
+		memset(correctMessage, 0, 6);
+		i=0;
+	}
+
+	if((i>=5 && strcmp(correctMessage,"ledOFF")) || (i==5 && (strcmp(correctMessage,"ledOF"))))
+	{
+		memset(correctMessage, 0, 6);
+		i=0;
+	}
+
 }
 
 /**
