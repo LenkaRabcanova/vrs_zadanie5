@@ -48,12 +48,11 @@ LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
 
   USART2_RegisterCallback(process_serial_data);
 
-char message1[] = "Led on";
-char message2[] = "Led off";
+  char message1[] = "Led on";
+  char message2[] = "Led off";
 
   while (1)
   {
-
 	if (LL_GPIO_IsOutputPinSet(GPIOB,LL_GPIO_PIN_3)){
 	for(int m = 0; m<6; m++)
 	{
@@ -116,28 +115,69 @@ void process_serial_data(uint8_t ch)
 
 	if(ch != '\r')
 	{
-		correctMessage[i] = ch;
+		correctMessage[i] =  ch;
 		i++;
+
+		if(i == 1 && strcmp(correctMessage, "l"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if(i == 2 && strcmp(correctMessage, "le"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if(i == 3 && strcmp(correctMessage, "led"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if(i == 4 && strcmp(correctMessage, "ledO"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if(i == 5 && strcmp(correctMessage, "ledON") && strcmp(correctMessage, "ledOF"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
+		if(i == 6 && strcmp(correctMessage, "ledOFF"))
+		{
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+
 	}
-	if(!strcmp(correctMessage,"ledON"))
-	{
-		LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
-		memset(correctMessage, 0, 6);
-		i=0;
-	}
-	if(!strcmp(correctMessage,"ledOFF"))
-	{
-		LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
-		memset(correctMessage, 0, 6);
-		i=0;
+	else {
+
+		// ak sa zhoduju tak strcmp vráti 0 => !0 je true
+		if(!strcmp(correctMessage,"ledON"))
+		{
+			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
+		if(!strcmp(correctMessage,"ledOFF"))
+		{
+			LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
+			memset(correctMessage, 0, 6);
+			i=0;
+		}
 	}
 
-	if((i>=5 && strcmp(correctMessage,"ledOFF")) || (i==5 && (strcmp(correctMessage,"ledOF"))))
+	//ssfety podmienka na vycistenie
+	if(i > 6)
 	{
 		memset(correctMessage, 0, 6);
 		i=0;
 	}
-
 }
 
 /**
